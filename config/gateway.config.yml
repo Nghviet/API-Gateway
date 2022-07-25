@@ -1,0 +1,63 @@
+http:
+  port: 8080
+  host: "localhost"
+apiEndpoints:
+  signer:
+    host: "*"
+    paths: ['/API/signer','/API/signer/*']
+  login:
+    host: "*"
+    paths: ['/API/signup', '/API/register', '/API/login/available']
+  anormaly:
+    host: "*"
+    paths: ['/API/discrete','/API/device_pattern', '/API/state_pattern']
+serviceEndpoints:
+  signer:
+    url: 'http://signer:12000'
+  login:
+    url: 'http://login-gateway:8080'
+policies:
+  - cors
+  - expression
+  - log
+  - proxy
+  - jwt_verify
+pipelines:
+  signer:
+    apiEndpoints:
+      - signer
+    policies:
+      - log:
+        - action:
+            message: '${req.method} ${req.originalUrl}'
+      - jwt_verify:
+      - proxy:
+        - action:
+           serviceEndpoint: signer
+           changeOrigin: true
+  login:
+    apiEndpoints:
+      - login
+    policies:
+      - log:
+        - action:
+            message: '${req.method} ${req.originalUrl}'
+      - proxy:
+        - action:
+            serviceEndpoint: login
+            changeOrigin: true
+  anormaly:
+    apiEndpoints:
+      - anormaly
+    policies:
+      - log:
+        - action:
+            message: '${req.method} ${req.originalUrl}'
+      - jwt_verify:
+      - proxy:
+        - action:
+           serviceEndpoint: login
+           changeOrigin: true
+
+
+      
